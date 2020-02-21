@@ -1,0 +1,64 @@
+---
+title: "AAVSO Zapper Summulator"
+subtitle="JUlian Dates
+author: "David J Jackson"
+date: "2/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+library(plotly)
+
+```
+```{r Import Data,echo=FALSE}
+rm(list=ls())
+betelguese <- fread("../db/Betelgeuse.csv")
+# AOri$Ymd <- as.Date(paste(AOri$year, AOri$month, AOri$day, sep = "-"))
+betelguese <- janitor::clean_names(betelguese)
+betelguese$band <- as.factor(betelguese$band)
+betelguese$magnitude <- as.numeric(betelguese$magnitude)
+AOri <- betelguese %>% select(jd,band,magnitude)
+summary(AOri)
+
+
+```
+
+
+
+
+### The Whole Enchilada: Jan - 1918 to Feb. 2020
+```{r, echo=FALSE}
+plot_ly(AOri) %>% add_lines(x=~Ymd,y=~Vis) %>%
+  layout(yaxis=list(autorange="reversed"))
+```
+```{r}
+summary(AOri)
+```
+
+
+### AAVSO Zapper Simulator (DataVerificaton)
+
+Positive observations more than 1 magnitude brighter or fainter than the mean magnitude.
+
+Make sure you are comparing observations made using the same color filter with each other (don't try to compare a CCDB observation with a visual one, for instance). 
+
+Also,make sure you are comparing observations made at approximately the same time (for some stars, significant changes in behavior can occur in a very short time.)
+
+  *  Fainter-than observations that are fainter than t5>he mean curve.
+  *  Observations made during the "seasonal gap" of a star.
+  *  For novae and supernovae, positive observations made before outburst.
+
+
+```{r,echo=FALSE}
+box_plot <-AOri %>% filter(Ymd >="2020-01-01") 
+plot_ly(box_plot) %>% add_boxplot(x = ~Ymd, y = ~Vis) %>%
+  layout(yaxis=list(autorange="reversed"))
+
+
+```
+```{r}
+summary(box_plot)
+```
