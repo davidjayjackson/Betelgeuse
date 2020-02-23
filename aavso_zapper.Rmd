@@ -14,10 +14,11 @@ library(plotly)
 ```
 ```{r Import Data,echo=FALSE}
 rm(list=ls())
-AOri <- fread("../db/Alf_Ori-corrected.csv")
-AOri$Ymd <- as.Date(paste(AOri$year, AOri$month, AOri$day, sep = "-"))
-AOri <- AOri %>% select(Ymd,year,month,Vis)
-
+alf_ori <- fread("../db/Alf_Ori-corrected.csv")
+# alf_ori <- fread(file.choose())
+alf_ori$Ymd <- as.Date(paste(alf_ori$year, alf_ori$month, alf_ori$day, sep = "-"))
+alf_ori <- janitor::clean_names(alf_ori)
+alf_ori <- alf_ori %>% select(ymd,year,month,vis) 
 
 ```
 
@@ -26,11 +27,11 @@ AOri <- AOri %>% select(Ymd,year,month,Vis)
 
 ### The Whole Enchilada: Jan - 1918 to Feb. 2020
 ```{r, echo=FALSE}
-plot_ly(AOri) %>% add_lines(x=~Ymd,y=~Vis) %>%
+plot_ly(alf_ori) %>% add_lines(x=~ymd,y=~vis) %>%
   layout(yaxis=list(autorange="reversed"))
 ```
 ```{r}
-summary(AOri)
+summary(alf_ori)
 ```
 
 
@@ -48,12 +49,20 @@ Also,make sure you are comparing observations made at approximately the same tim
 
 
 ```{r,echo=FALSE}
-box_plot <-AOri %>% filter(Ymd >="2020-01-01") 
-plot_ly(box_plot) %>% add_boxplot(x = ~Ymd, y = ~Vis) %>%
+box_plot <-alf_ori %>% filter(ymd >="2020-01-01") 
+plot_ly(box_plot) %>% add_boxplot(x = ~ymd, y = ~vis) %>%
   layout(yaxis=list(autorange="reversed"))
 
 
 ```
 ```{r}
-summary(box_plot)
+box_plot_stats <- alf_ori %>% filter(ymd >="2000-01-01") %>%
+  group_by(ymd) %>% 
+  summarize(mean=mean(vis),
+            max=mean+1, min=mean-1)
+gg <- ggplot(box_plot_stats, aes(ymd, mean, ymin=min, ymax=max)) +
+  geom_pointrange() 
+
+
+
 ```

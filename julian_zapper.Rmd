@@ -1,6 +1,6 @@
 ---
 title: "AAVSO Zapper Summulator"
-subtitle="JUlian Dates
+subtitle: "JUlian Dates"
 author: "David J Jackson"
 date: "2/18/2020"
 output: html_document
@@ -11,17 +11,25 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(data.table)
 library(plotly)
+library(insol)
+
 
 ```
 ```{r Import Data,echo=FALSE}
 rm(list=ls())
-betelguese <- fread("../db/Betelgeuse.csv")
-# AOri$Ymd <- as.Date(paste(AOri$year, AOri$month, AOri$day, sep = "-"))
+betelguese <- fread("../db/and_aq.csv")
+betelguese$JD <- as.character(betelguese$JD)
+betelguese$JDate <- as.integer(betelguese$JD)
 betelguese <- janitor::clean_names(betelguese)
+betelguese$Ymd <- JD(betelguese$j_date,inverse = TRUE)
+# betelguese$Ymd <- as.Date(betelguese$Ymd)
+betelguese$Ymd <- as.Date(betelguese$Ymd)
+# betelguese$jd <- as.character(betelguese$jd)
+##
 betelguese$band <- as.factor(betelguese$band)
 betelguese$magnitude <- as.numeric(betelguese$magnitude)
-AOri <- betelguese %>% select(jd,band,magnitude)
-summary(AOri)
+alf_ori <- betelguese %>% select(Ymd,jd,band,magnitude) %>% filter(band=="Vis.")
+summary(alf_ori)
 
 
 ```
@@ -31,15 +39,15 @@ summary(AOri)
 
 ### The Whole Enchilada: Jan - 1918 to Feb. 2020
 ```{r, echo=FALSE}
-plot_ly(AOri) %>% add_lines(x=~Ymd,y=~Vis) %>%
+plot_ly(alf_ori) %>% add_lines(x=~Ymd,y=~magnitude) %>%
   layout(yaxis=list(autorange="reversed"))
 ```
 ```{r}
-summary(AOri)
+summary(alf_ori)
 ```
 
 
-### AAVSO Zapper Simulator (DataVerificaton)
+### AAVSO Zapper Simulator (Data Verificaton)
 
 Positive observations more than 1 magnitude brighter or fainter than the mean magnitude.
 
@@ -53,8 +61,8 @@ Also,make sure you are comparing observations made at approximately the same tim
 
 
 ```{r,echo=FALSE}
-box_plot <-AOri %>% filter(Ymd >="2020-01-01") 
-plot_ly(box_plot) %>% add_boxplot(x = ~Ymd, y = ~Vis) %>%
+box_plot <-alf_ori %>% filter(Ymd >="2020-01-01") 
+plot_ly(box_plot) %>% add_boxplot(x = ~Ymd, y = ~magnitude) %>%
   layout(yaxis=list(autorange="reversed"))
 
 
