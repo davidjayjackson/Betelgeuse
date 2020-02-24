@@ -1,0 +1,52 @@
+---
+title: "GNU Zapper"
+author: "David J Jackson"
+date: "2/23/2020"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+library(lubridate)
+library(plotly)
+library(insol)
+
+
+```
+```{r Import Data,echo=FALSE}
+rm(list=ls())
+betelguese <- fread("../db/and_aq.csv")
+betelguese$Ymd <- JD(betelguese$JD,inverse = TRUE)
+betelguese$Ymd <- as.Date(betelguese$Ymd)
+betelguese$JD <- as.character(betelguese$JD)
+betelguese$JDate <- as.integer(betelguese$JD)
+betelguese <- janitor::clean_names(betelguese)
+betelguese$band <- as.factor(betelguese$band)
+betelguese$magnitude <- as.numeric(betelguese$magnitude)
+betelguese$M7 <- forecast::ma(betelguese$magnitude,order=7)
+betelguese$M30 <- forecast::ma(betelguese$magnitude,order=30)
+betelguese$M60 <- forecast::ma(betelguese$magnitude,order=90)
+```
+```{r}
+alf_ori <- betelguese %>% select(ymd,jd,band,magnitude,
+                                 M7,M30,M60) %>% filter(band=="Vis.")
+```
+```{r}
+alf_weekly <- alf_ori %>% select(ymd,band,magnitude) %>% group_by(Weekly = floor_date(ymd,"week"),band) %>% summarise(
+                  Magnitude = mean(magnitude),
+                  Maximum = Magnitude -1,
+                  Minimum = Magnitude +1,
+                  Count = n())  %>% filter(Weekly >="2018-03-01") %>%
+                   select(Weekly,Maximum,Magnitude,Minimum)
+```
+```{r}
+
+alf_wek <- alf_weekly %>% filter(Weekly >="2018-01-01") 
+alf_daily <- alf_ori %>% filter(ymd >="2018-01-01")
+ggplot(data=alf_wek) +geom_line(aes(x=Weekly,y=Minimum,col="Dimmer")) +
+ geom_line(data=alf_wek,aes(x=Weekly,y=Maximum,col="Brighter")) + 
+  geom_point(data=alf_daily,aes(x=ymd,y=magnitude,col="Magnitude")) +
+    scale_y_reverse()
+```
+
