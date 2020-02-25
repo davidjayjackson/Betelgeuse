@@ -1,0 +1,67 @@
+---
+title: "AAVSO Janitor"
+subtitle: "Variable Start Validation"
+author: "David J Jackson"
+date: "2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE,echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=8, fig.height=6)
+library(tidyverse)
+library(data.table)
+library(lubridate)
+library(plotly)
+library(insol)
+```
+```{r,echo=FALSE}
+rm(list=ls())
+path = choose.files()
+name = basename(path)
+# betelguese = fread(path)
+```
+```{r, echo=FALSE}
+betelguese <- fread(path)
+betelguese$Ymd <- JD(betelguese$JD,inverse = TRUE)
+betelguese$Ymd <- as.Date(betelguese$Ymd)
+betelguese$JD <- as.character(betelguese$JD)
+betelguese$JDate <- as.integer(betelguese$JD)
+betelguese <- janitor::clean_names(betelguese)
+betelguese$band <- as.factor(betelguese$band)
+betelguese$magnitude <- as.numeric(betelguese$magnitude)
+# betelguese$Loess <- lowess(betelguese$magnitude, y = NULL, f = 2/3)
+Average <- mean(betelguese$magnitude,na.rm=TRUE)
+alf_ori <- betelguese %>% filter(band=="Vis.")
+alf_ori <- alf_ori %>% select(ymd,jd,j_date,band,magnitude) 
+```
+```{r}
+summary(alf_ori$ymd)
+Average <- round(Average,digits = 1)
+
+```
+```{r,echo=FALSE}
+g_ymd<- ggplot(alf_ori) + geom_point(aes(x=ymd,y=magnitude,col="Magnitude"))+   geom_hline(aes(yintercept=Average,col="Historial Mean")) + 
+  geom_hline(aes(yintercept=Average +1,col="+1")) +
+  geom_hline(aes(yintercept=Average -1,col="-1")) +
+  theme(axis.text.x = element_text(angle = -45)) +
+  scale_y_reverse() + labs(title=toupper(name)) 
+  ggplotly(g_ymd)
+```
+
+# MR Smooth using Loess smoothing to find outilers
+
+```{r,echo=FALSE}
+mr_smooth <-   loess.smooth(x=betelguese$ymd, y=betelguese$magnitude, span = 1/3, degree = 2,
+             family = c("symmetric", "gaussian"), evaluation = 50)
+mr_smooth <- as.data.table(mr_smooth)
+g_smooth <- ggplot() +geom_line(data=mr_smooth,aes(x,y,col="Loess"),size=1) + 
+        geom_point(data=alf_ori,aes(x=ymd,y=magnitude,col="Magnitude")) +
+        geom_line(data=mr_smooth,aes(x,y-1,col="Loess -1"),size=1) +
+        geom_line(data=mr_smooth,aes(x,y+1,col="Loess +1"),size=1) +
+        scale_y_reverse()
+
+ggplotly(g_smooth)
+```
+
+
