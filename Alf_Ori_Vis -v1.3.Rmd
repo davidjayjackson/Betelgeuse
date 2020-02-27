@@ -3,7 +3,7 @@ title: "Alf (aka Betelgeuse) Ori Preditions(v1.5)"
 subtitle: "Jan. 1918 - Nov.11, 2022"
 author: "Rodney Howe & David  Jackson"
 date: "2/17/2020"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ library(forecast)
 The AAVSO is an international non-profit organization of variable star observers whose mission is to enable anyone, anywhere, to participate in scientific discovery through variable star astronomy. We accomplish our mission by carrying out the following activities:
 
 * observation and analysis of variable stars
-* ollecting and archiving observations for worldwide access
+* collecting and archiving observations for worldwide access
 * forging strong collaborations between amateur and professional astronomers
 * promoting scientific research, education, and public outreach using variable star data.
 
@@ -111,7 +111,7 @@ ggplot(aes(x=Ymd,y=Mean,col="Visual")) +
 \newpage
 ## Use Facebook Prophet to Predict Magnitutde
 ```{r Predict Daily Alf Ori, echo=FALSE}
-df <- AOri1 %>% select(Ymd,Mean) 
+df <- AOri1 %>% select(Ymd,Mean) %>% filter(Ymd <="2015-01-01")
 colnames(df) <- c("ds","y")
 m <- prophet(seasonality.mode="multiplicative")
 m <- add_seasonality(m, name="half_year_cycle", period=180.25 * 1,fourier.order=5)
@@ -126,7 +126,7 @@ plot(m, forecast) +ggtitle("Vis Daily: Jan. 1918 - Mar. 2020") +
 ```
 ```{r ,echo=FALSE}
 fcast <- forecast %>% select(ds,yhat,yhat_lower,yhat_upper) %>%
-  filter(ds >="2019-08-01")
+  filter(ds >="2015-12-31")
 fcast$ds <- as.Date(fcast$ds)
 Actual <- AOri1 %>%  filter(Ymd >="2007-01-01" & Ymd <="2020-01-01")
 ggplot(fcast) + geom_line(aes(x=ds,y=yhat,col="Prediction")) +
