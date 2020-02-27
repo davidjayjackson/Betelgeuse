@@ -10,37 +10,49 @@ knitr::opts_chunk$set(echo = TRUE)
 library(insol)
 library(ggplot2)
 library(plotly)
-rm(list=ls())
+
 ```
 ```{r, echo=FALSE}
+rm(list=ls())
 path = choose.files()
 name = basename(path)
-alf_ori <- data.table::fread(path)
+alf_ori <- data.table::fread(path) 
+alf_ori <- alf_ori %>% filter(Band =="Vis.")
 alf_ori$Ymd <- insol::JD(alf_ori$JD,inverse = TRUE)
 alf_ori$Ymd <- as.Date(alf_ori$Ymd)
 alf_ori$Year  <- lubridate::year(alf_ori$Ymd)
+#
+alf_ori$Quarter <- paste0(lubridate::year(alf_ori$Ymd), " ", lubridate::quarter(alf_ori$Ymd), "Qtr")
+#
 alf_ori$Magnitude <- as.numeric( gsub("<","", alf_ori$Magnitude) )
-alf_ori$Magnitude <- round(alf_ori$Magnitude,digits = 1)
-alf_ori <- alf_ori %>% select(Ymd,Year,Magnitude,Band)
+# alf_ori$Magnitude <- round(alf_ori$Magnitude,digits = 1)
+alf_ori <- alf_ori %>% select(Ymd,Quarter,Year,Magnitude,Band)
 
+```
+```{r, echo=FALSE}
+print("###################")
+toupper(name)
+print("##################")
 ```
 ```{r,echo=FALSE}
 alf_ori %>% filter(Year >=2020) %>%
 plot_ly() %>% add_boxplot(x=~Year,y=~Magnitude) %>%
-  layout(title = ": 2020 and Beyond")
+  layout(title = ": 2020 and Beyond") %>% layout(yaxis = list(autorange = "reversed"))
 ```
 ```{r,echo=FALSE}
 alf_ori %>% filter(Year >=1999 & Year <=2019) %>%
 plot_ly() %>% add_boxplot(x=~Year,y=~Magnitude) %>%
-  layout(title = "1999 - 2019")
+  layout(title = "1999 - 2019") %>% layout(yaxis = list(autorange = "reversed"))
 ```
 
 ```{r,echo=FALSE}
 alf_ori %>% filter(Year >=1979 & Year <=1999) %>%
 plot_ly() %>% add_boxplot(x=~Year,y=~Magnitude) %>%
-  layout(title = "1979 - 1999") 
+  layout(title = "1979 - 1999") %>% layout(yaxis = list(autorange = "reversed"))
 ```
 ```{r,echo=FALSE}
 alf_ori %>% filter(Year >=1959 & Year <=1979) %>%
 plot_ly() %>% add_boxplot(x=~Year,y=~Magnitude) %>%
-  layout(title = "1959 - 1979") 
+  layout(title = "1959 - 1979") %>% layout(yaxis = list(autorange = "reversed"))
+```
+

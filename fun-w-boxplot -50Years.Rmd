@@ -1,12 +1,13 @@
 ---
 title: "Magic Box Plots"
 author: "David J Jackson"
-date: 'format(Sys.time(), "%a %b %d %X %Y")'
+date:  '`r format(Sys.time(),"%a %b %d  %Y  %X")`'
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=8, fig.height=6)
 library(insol)
 library(ggplot2)
 library(plotly)
